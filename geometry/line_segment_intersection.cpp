@@ -1,7 +1,6 @@
 /**
  * @file
- * @brief check whether two line segments intersect each other
- * or not.
+ * @brief Check whether two line segments intersect each other.
  */
 #include <algorithm>
 #include <iostream>
@@ -10,95 +9,71 @@
  * Define a Point.
  */
 struct Point {
-    int x;  /// Point respect to x coordinate
-    int y;  /// Point respect to y coordinate
+    int x;  /// x-coordinate of the point
+    int y;  /// y-coordinate of the point
 };
 
 /**
- * intersect returns true if segments of two line intersects and
- * false if they do not. It calls the subroutines direction
- * which computes the orientation.
+ * SegmentIntersection class to check intersection of two segments.
  */
-struct SegmentIntersection {
-    inline bool intersect(Point first_point, Point second_point,
-                          Point third_point, Point forth_point) {
-        int direction1 = direction(third_point, forth_point, first_point);
-        int direction2 = direction(third_point, forth_point, second_point);
-        int direction3 = direction(first_point, second_point, third_point);
-        int direction4 = direction(first_point, second_point, forth_point);
+class SegmentIntersection {
+public:
+    /**
+     * Check if two line segments intersect.
+     */
+    bool intersect(const Point& p1, const Point& p2, const Point& p3, const Point& p4) {
+        int d1 = direction(p3, p4, p1);
+        int d2 = direction(p3, p4, p2);
+        int d3 = direction(p1, p2, p3);
+        int d4 = direction(p1, p2, p4);
 
-        if ((direction1 < 0 || direction2 > 0) &&
-            (direction3 < 0 || direction4 > 0))
+        // General case
+        if ((d1 < 0 && d2 > 0) || (d1 > 0 && d2 < 0) &&
+            (d3 < 0 && d4 > 0) || (d3 > 0 && d4 < 0)) {
             return true;
+        }
 
-        else if (direction1 == 0 &&
-                 on_segment(third_point, forth_point, first_point))
-            return true;
+        // Special cases
+        if (d1 == 0 && on_segment(p3, p4, p1)) return true;
+        if (d2 == 0 && on_segment(p3, p4, p2)) return true;
+        if (d3 == 0 && on_segment(p1, p2, p3)) return true;
+        if (d4 == 0 && on_segment(p1, p2, p4)) return true;
 
-        else if (direction2 == 0 &&
-                 on_segment(third_point, forth_point, second_point))
-            return true;
+        return false;
+    }
 
-        else if (direction3 == 0 &&
-                 on_segment(first_point, second_point, third_point))
-            return true;
-
-        else if (direction3 == 0 &&
-                 on_segment(first_point, second_point, forth_point))
-            return true;
-
-        else
-            return false;
+private:
+    /**
+     * Determine the orientation of the ordered triplet (p, q, r).
+     * @return 0 if collinear, positive if clockwise, negative if counter-clockwise.
+     */
+    int direction(const Point& p, const Point& q, const Point& r) const {
+        return (r.y - p.y) * (q.x - p.x) - (r.x - p.x) * (q.y - p.y);
     }
 
     /**
-     * We will find direction of line here respect to @first_point.
-     * Here @second_point and @third_point is first and second points
-     * of the line respectively. we want a method to determine which way a
-     * given angle these three points turns. If returned number is negative,
-     * then the angle is counter-clockwise. That means the line is going to
-     * right to left. We will fount angle as clockwise if the method returns
-     * positive number.
+     * Check if point r lies on line segment 'pq'.
      */
-    inline int direction(Point first_point, Point second_point,
-                         Point third_point) {
-        return ((third_point.x - first_point.x) *
-                (second_point.y - first_point.y)) -
-               ((second_point.x - first_point.x) *
-                (third_point.y - first_point.y));
-    }
-
-    /**
-     * This method determines whether a point known to be colinear
-     * with a segment lies on that segment.
-     */
-    inline bool on_segment(Point first_point, Point second_point,
-                           Point third_point) {
-        if (std::min(first_point.x, second_point.x) <= third_point.x &&
-            third_point.x <= std::max(first_point.x, second_point.x) &&
-            std::min(first_point.y, second_point.y) <= third_point.y &&
-            third_point.y <= std::max(first_point.y, second_point.y))
-            return true;
-
-        else
-            return false;
+    bool on_segment(const Point& p, const Point& q, const Point& r) const {
+        return std::min(p.x, q.x) <= r.x && r.x <= std::max(p.x, q.x) &&
+               std::min(p.y, q.y) <= r.y && r.y <= std::max(p.y, q.y);
     }
 };
 
 /**
- * This is the main function to test whether the algorithm is
- * working well.
+ * Main function to test the algorithm.
  */
 int main() {
     SegmentIntersection segment;
-    Point first_point, second_point, third_point, forth_point;
+    Point p1, p2, p3, p4;
 
-    std::cin >> first_point.x >> first_point.y;
-    std::cin >> second_point.x >> second_point.y;
-    std::cin >> third_point.x >> third_point.y;
-    std::cin >> forth_point.x >> forth_point.y;
+    std::cout << "Enter coordinates of first segment (x1 y1 x2 y2): ";
+    std::cin >> p1.x >> p1.y >> p2.x >> p2.y;
+    
+    std::cout << "Enter coordinates of second segment (x3 y3 x4 y4): ";
+    std::cin >> p3.x >> p3.y >> p4.x >> p4.y;
 
-    printf("%d", segment.intersect(first_point, second_point, third_point,
-                                   forth_point));
-    std::cout << std::endl;
+    std::cout << (segment.intersect(p1, p2, p3, p4) ? "Intersect" : "Do not intersect") << std::endl;
+
+    return 0;
 }
