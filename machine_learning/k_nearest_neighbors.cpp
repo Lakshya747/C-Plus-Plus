@@ -5,7 +5,7 @@
  * @author [Luiz Carlos Cosmi Filho](https://github.com/luizcarloscf)
  * @details K-nearest neighbors algorithm, also known as KNN or k-NN, is a
  * supervised learning classifier, which uses proximity to make classifications.
- * This implementantion uses the Euclidean Distance as distance metric to find
+ * This implementation uses the Euclidean Distance as the distance metric to find
  * the K-nearest neighbors.
  */
 
@@ -22,7 +22,6 @@
  * @brief Machine learning algorithms
  */
 namespace machine_learning {
-
 /**
  * @namespace k_nearest_neighbors
  * @brief Functions for the [K-Nearest Neighbors algorithm]
@@ -34,8 +33,8 @@ namespace k_nearest_neighbors {
  * @brief Compute the Euclidean distance between two vectors.
  *
  * @tparam T typename of the vector
- * @param a first unidimentional vector
- * @param b second unidimentional vector
+ * @param a first unidimensional vector
+ * @param b second unidimensional vector
  * @return double scalar representing the Euclidean distance between provided
  * vectors
  */
@@ -60,38 +59,22 @@ class Knn {
  public:
     /**
      * @brief Construct a new Knn object.
-     * @details Using lazy-learning approch, just holds in memory the dataset.
+     * @details Using lazy-learning approach, just holds in memory the dataset.
      * @param X attributes vector
      * @param Y labels vector
      */
-    explicit Knn(std::vector<std::vector<double>>& X, std::vector<int>& Y)
+    explicit Knn(const std::vector<std::vector<double>>& X, const std::vector<int>& Y)
         : X_(X), Y_(Y){};
 
-    /**
-     * Copy Constructor for class Knn.
-     *
-     * @param model instance of class to be copied
-     */
+    /** Copy Constructor for class Knn. */
     Knn(const Knn& model) = default;
-
-    /**
-     * Copy assignment operator for class Knn
-     */
+    /** Copy assignment operator for class Knn */
     Knn& operator=(const Knn& model) = default;
-
-    /**
-     * Move constructor for class Knn
-     */
+    /** Move constructor for class Knn */
     Knn(Knn&&) = default;
-
-    /**
-     * Move assignment operator for class Knn
-     */
+    /** Move assignment operator for class Knn */
     Knn& operator=(Knn&&) = default;
-
-    /**
-     * @brief Destroy the Knn object
-     */
+    /** @brief Destroy the Knn object */
     ~Knn() = default;
 
     /**
@@ -100,36 +83,24 @@ class Knn {
      * @param k number of neighbors
      * @return int label of most frequent neighbors
      */
-    int predict(std::vector<double>& sample, int k) {
-        std::vector<int> neighbors;
+    int predict(const std::vector<double>& sample, int k) const {
         std::vector<std::pair<double, int>> distances;
-        for (size_t i = 0; i < this->X_.size(); ++i) {
-            auto current = this->X_.at(i);
-            auto label = this->Y_.at(i);
-            auto distance = euclidean_distance(current, sample);
-            distances.emplace_back(distance, label);
+        for (size_t i = 0; i < X_.size(); ++i) {
+            auto distance = euclidean_distance(X_[i], sample);
+            distances.emplace_back(distance, Y_[i]);
         }
         std::sort(distances.begin(), distances.end());
-        for (int i = 0; i < k; i++) {
-            auto label = distances.at(i).second;
-            neighbors.push_back(label);
-        }
         std::unordered_map<int, int> frequency;
-        for (auto neighbor : neighbors) {
-            ++frequency[neighbor];
+        for (int i = 0; i < k; ++i) {
+            ++frequency[distances[i].second];
         }
-        std::pair<int, int> predicted;
-        predicted.first = -1;
-        predicted.second = -1;
-        for (auto& kv : frequency) {
-            if (kv.second > predicted.second) {
-                predicted.second = kv.second;
-                predicted.first = kv.first;
-            }
-        }
-        return predicted.first;
+        return std::max_element(frequency.begin(), frequency.end(),
+                                [](const auto& a, const auto& b) {
+                                    return a.second < b.second;
+                                })->first;
     }
 };
+
 }  // namespace k_nearest_neighbors
 }  // namespace machine_learning
 
@@ -153,6 +124,7 @@ static void test() {
     assert(model1.predict(sample3, 2) == 1);
     assert(model1.predict(sample4, 2) == 2);
     std::cout << "... Passed" << std::endl;
+
     std::cout << "------- Test 2 -------" << std::endl;
     std::vector<std::vector<double>> X2 = {
         {0.0, 0.0, 0.0}, {0.25, 0.25, 0.0}, {0.0, 0.5, 0.0}, {0.5, 0.5, 0.0},
@@ -168,6 +140,7 @@ static void test() {
     assert(model2.predict(sample7, 2) == 1);
     assert(model2.predict(sample8, 2) == 3);
     std::cout << "... Passed" << std::endl;
+
     std::cout << "------- Test 3 -------" << std::endl;
     std::vector<std::vector<double>> X3 = {{0.0}, {1.0}, {2.0}, {3.0},
                                            {4.0}, {5.0}, {6.0}, {7.0}};
